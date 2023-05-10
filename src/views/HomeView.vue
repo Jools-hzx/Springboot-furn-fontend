@@ -26,10 +26,16 @@
             </el-table-column>
             <el-table-column prop="stock" label="库存">
             </el-table-column>
-            <el-table-column fixed="right" label="操作" width="100">
+            <el-table-column fixed="right" label="操作" width="150">
                 <template #default="scope">
                     <el-button @click="handleEdit(scope.row)" type="text">编辑</el-button>
-                    <el-button type="text">删除</el-button>
+                    <!-- 增加 popcomfirm 控件，确认删除 -->
+                    <el-popconfirm
+                            title="确定删除吗？" @confirm="handleDel(scope.row.id)">
+                        <template #reference>
+                            <el-button size="small" type="danger">删除</el-button>
+                        </template>
+                    </el-popconfirm>
                 </template>
             </el-table-column>
         </el-table>
@@ -100,6 +106,27 @@ export default {
         }
     },
     methods: {
+        handleDel(id) {
+            console.log("id:", id);
+            request.delete(
+                '/api/del/' + id
+            ).then(
+                res => {
+                    if (res.code === "200") {
+                        //添加成功...
+                        ElMessage({
+                            message: '删除成功',
+                            type: 'success',
+                        });
+                        //重新请求所有数据
+                        this.list();    //更新数据
+                    } else {
+                        //弹出提示失败
+                        ElMessage.error(res.msg);
+                    }
+                }
+            )
+        },
         handleEdit(row) {
             //JSON.stringfy(row) 转化成 json 字符串
 
@@ -115,9 +142,9 @@ export default {
                     this.form = JSON.parse(JSON.stringify(res.data));
                     if (res.code === "200") {
                         this.dialogVisible = true;
-                    }else {
+                    } else {
                         //弹出提示失败
-                        ElMessage.error('请求失败');
+                        ElMessage.error(res.msg);
                     }
                 }
             )
@@ -149,7 +176,7 @@ export default {
                             this.list();    //更新数据
                         } else {
                             //弹出提示失败
-                            ElMessage.error('更新失败');
+                            ElMessage.error(res.msg);
                         }
                     }
                 )
@@ -173,7 +200,7 @@ export default {
                             this.list();    //更新数据
                         } else {
                             //弹出提示失败
-                            ElMessage.error('更新失败');
+                            ElMessage.error(res.msg);
                             //重新请求所有数据
                             //清空本次存储的数据
                             this.dialogVisible = false;
