@@ -72,6 +72,17 @@
                 </span>
             </template>
         </el-dialog>
+
+        <div style="margin: 10px 0">
+            <el-pagination
+                    @size-change="handlePageSizeChange" @current-change="handleCurrentChange"
+                    :current-page="currentPage"
+                    :page-sizes="[5,8]"
+                    :page-size="pageSize"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    :total="total">
+            </el-pagination>
+        </div>
     </div>
 </template>
 
@@ -99,6 +110,9 @@ export default {
     },
     data() {
         return {
+            currentPage: 1, //当前页数
+            pageSize: 8,    //每页显示的数据量
+            total: 10,  //总记录数量
             form: {},   //存储添加表单中的信息
             dialogVisible: false,   //设置添加表单是否可见
             search: '',
@@ -106,6 +120,15 @@ export default {
         }
     },
     methods: {
+        handlePageSizeChange(pageSize) {
+            this.pageSize = pageSize;
+            //刷新
+            this.list();
+        },
+        handleCurrentChange(pageNum) {
+            this.currentPage = pageNum;
+            this.list();
+        },
         handleDel(id) {
             console.log("id:", id);
             request.delete(
@@ -211,11 +234,25 @@ export default {
             }
         },
         list() {
-            request.get('/api/list')
-                .then(res => {
-                    console.log("res:", res);
-                    this.tableData = res.data;
-                })
+            // request.get('/api/list')
+            //     .then(res => {
+            //         console.log("res:", res);
+            //         this.tableData = res.data;
+            //     })
+            request.get(
+                '/api/furnsByPage', {
+                    params: {
+                        "pageNum": this.currentPage,
+                        "pageSize": this.pageSize,
+                    }
+                }
+            ).then(res => {
+                console.log("res:", res);
+                //更新显示的数据
+                this.tableData = res.data.records;
+                //更新数据总量
+                this.total = res.data.total;
+            });
         }
     }
 }
