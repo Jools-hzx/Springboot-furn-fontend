@@ -100,41 +100,88 @@ export default {
         }
     },
     methods: {
-        handleEdit() {
-            //先写一个空的方法
+        handleEdit(row) {
+            //JSON.stringfy(row) 转化成 json 字符串
+
+            //把 json 字符串转化成 json 对象
+            //把得到的数据和 from 绑定，显示到对话框中
+
+            //回显表单方式而: 请求DB回显数据
+            console.log("id:", row.id);
+            request.get(
+                '/api/query?id=' + row.id
+            ).then(
+                res => {
+                    this.form = JSON.parse(JSON.stringify(res.data));
+                    if (res.code === "200") {
+                        this.dialogVisible = true;
+                    }else {
+                        //弹出提示失败
+                        ElMessage.error('请求失败');
+                    }
+                }
+            )
+            // this.form = JSON.parse(JSON.stringify(row));
         },
         add() {
             this.form = {}; //清空表单
             this.dialogVisible = true;
         },
         save() {
-            request.post(
-                '/api/save',
-                JSON.parse(JSON.stringify(this.form))
-            ).then(
-                res => {
-                    console.log("res:", res);
-                    if (res.data.code === "200") {
-                        //添加成功...
-                        ElMessage({
-                            message: '添加成功',
-                            type: 'success',
-                        });
-                        //重新请求所有数据
-                        //清空本次存储的数据
-                        this.dialogVisible = false;
-                        this.form = {};
-                        this.list();    //更新数据
-                    } else {
-                        //弹出提示失败
-                        ElMessage.error('添加失败');
-                        //重新请求所有数据
-                        //清空本次存储的数据
-                        this.dialogVisible = false;
-                        this.form = {};
+            //集成添加和修改
+            if (this.form.id) {
+                //如果显示id,则说明是进行更新操作
+                request.put(
+                    '/api/update',
+                    JSON.parse(JSON.stringify(this.form))
+                ).then(
+                    res => {
+                        console.log("res:", res);
+                        if (res.code === "200") {
+                            //添加成功...
+                            ElMessage({
+                                message: '更新成功',
+                                type: 'success',
+                            });
+                            //重新请求所有数据
+                            //清空本次存储的数据
+                            this.dialogVisible = false;
+                            this.list();    //更新数据
+                        } else {
+                            //弹出提示失败
+                            ElMessage.error('更新失败');
+                        }
                     }
-                }
-            )
+                )
+            } else {
+                //否则进行添加操作
+                request.post(
+                    '/api/save',
+                    JSON.parse(JSON.stringify(this.form))
+                ).then(
+                    res => {
+                        console.log("res:", res);
+                        if (res.code === "200") {
+                            //添加成功...
+                            ElMessage({
+                                message: '更新成功',
+                                type: 'success',
+                            });
+                            //重新请求所有数据
+                            //清空本次存储的数据
+                            this.dialogVisible = false;
+                            this.list();    //更新数据
+                        } else {
+                            //弹出提示失败
+                            ElMessage.error('更新失败');
+                            //重新请求所有数据
+                            //清空本次存储的数据
+                            this.dialogVisible = false;
+                            this.form = {};
+                        }
+                    }
+                )
+            }
         },
         list() {
             request.get('/api/list')
