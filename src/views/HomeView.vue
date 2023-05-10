@@ -14,9 +14,18 @@
         </div>
 
         <el-table :data="tableData" stripe style="width: 100%">
-            <el-table-column sortable prop="date" label="日期"></el-table-column>
-            <el-table-column prop="name" label="姓名"></el-table-column>
-            <el-table-column prop="address" label="地址"></el-table-column>
+            <el-table-column prop="id" label="ID" sortable>
+            </el-table-column>
+            <el-table-column prop="name" label="家居名">
+            </el-table-column>
+            <el-table-column prop="maker" label="厂家">
+            </el-table-column>
+            <el-table-column prop="price" label="价格">
+            </el-table-column>
+            <el-table-column prop="sales" label="销量">
+            </el-table-column>
+            <el-table-column prop="stock" label="库存">
+            </el-table-column>
             <el-table-column fixed="right" label="操作" width="100">
                 <template #default="scope">
                     <el-button @click="handleEdit(scope.row)" type="text">编辑</el-button>
@@ -74,28 +83,20 @@ export default {
     components: {
         // HelloWorld
     },
+    created() {
+        /*
+        created:
+          这个阶段组件的 data 和 methods 中的方法已初始化结束，可以访问，但是 dom 结构未
+          初始化，页面未渲染
+        */
+        this.list();
+    },
     data() {
         return {
             form: {},   //存储添加表单中的信息
             dialogVisible: false,   //设置添加表单是否可见
             search: '',
-            tableData: [
-                {
-                    date: '2016-05-02',
-                    name: '王小虎',
-                    address: '上海市普陀区金沙江路 1518 弄',
-                },
-                {
-                    date: '2016-05-04',
-                    name: '王小虎',
-                    address: '上海市普陀区金沙江路 1517 弄',
-                },
-                {
-                    date: '2016-05-01',
-                    name: '王小虎',
-                    address: '上海市普陀区金沙江路 1519 弄',
-                }
-            ]
+            tableData: []   //tableData动态通过 list() 获取
         }
     },
     methods: {
@@ -123,6 +124,7 @@ export default {
                         //清空本次存储的数据
                         this.dialogVisible = false;
                         this.form = {};
+                        this.list();    //更新数据
                     } else {
                         //弹出提示失败
                         ElMessage.error('添加失败');
@@ -133,6 +135,13 @@ export default {
                     }
                 }
             )
+        },
+        list() {
+            request.get('/api/list')
+                .then(res => {
+                    console.log("res:", res);
+                    this.tableData = res.data;
+                })
         }
     }
 }

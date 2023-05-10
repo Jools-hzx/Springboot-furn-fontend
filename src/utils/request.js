@@ -18,5 +18,26 @@ request.interceptors.request.use(
     }
 )
 
+//response 拦截器
+//可以在调用接口响应后；统一处理返回结果
+request.interceptors.response.use(
+    response => {
+        let res = response.data;
+        //如果返回得是文件
+        if (response.config.responseType === 'blob') {
+            return res;
+        }
+        //如果返回得是 String, 转化成json字符串
+        if (typeof res === 'string') {
+            //如果 res 不为 null, 就转化成 json 对象
+            res = res ? JSON.parse(res) : res;
+        }
+        return res;
+    }, error => {
+        console.log("err", error);
+        return Promise.reject(error);
+    }
+)
+
 //导出模块
 export default request;
