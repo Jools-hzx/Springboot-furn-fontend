@@ -277,7 +277,7 @@ export default {
 
             //修改成分页查询带条件
             request.get(
-                '/api/pageByConditional', {
+                '/api/pageByConditional2', {
                     params: {
                         "pageNum": this.currentPage,
                         "pageSize": this.pageSize,
