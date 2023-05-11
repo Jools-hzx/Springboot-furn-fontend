@@ -10,7 +10,7 @@
         <!-- 搜索-->
         <div style="margin: 10px 0">
             <el-input v-model="search" placeholder=" 请 输 入 关 键 字 " style="width:30%"></el-input>
-            <el-button style="margin-left: 10px" type="primary">查询</el-button>
+            <el-button style="margin-left: 10px" type="primary" @click="list">查询</el-button>
         </div>
 
         <el-table :data="tableData" stripe style="width: 100%">
@@ -239,11 +239,14 @@ export default {
             //         console.log("res:", res);
             //         this.tableData = res.data;
             //     })
+
+            //修改成分页查询带条件
             request.get(
-                '/api/furnsByPage', {
+                '/api/pageByConditional', {
                     params: {
                         "pageNum": this.currentPage,
                         "pageSize": this.pageSize,
+                        "search": this.search
                     }
                 }
             ).then(res => {
