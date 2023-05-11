@@ -51,18 +51,23 @@
             <el-form :model="form" label-width="120px" :rules="rules" ref="form">
                 <el-form-item label="家居名" prop="name">
                     <el-input v-model="form.name" style="width: 80%"></el-input>
+                    {{validMsg.name}}
                 </el-form-item>
                 <el-form-item label="厂商" prop="maker">
                     <el-input v-model="form.maker" style="width: 80%"></el-input>
+                    {{validMsg.maker}}
                 </el-form-item>
                 <el-form-item label="价格" prop="price">
                     <el-input v-model="form.price" style="width: 80%"></el-input>
+                    {{validMsg.price}}
                 </el-form-item>
                 <el-form-item label="销量" prop="sales">
                     <el-input v-model="form.sales" style="width: 80%"></el-input>
+                    {{validMsg.sales}}
                 </el-form-item>
                 <el-form-item label="库存" prop="stock">
                     <el-input v-model="form.stock" style="width: 80%"></el-input>
+                    {{validMsg.stock}}
                 </el-form-item>
             </el-form>
             <template #footer>
@@ -110,6 +115,7 @@ export default {
     },
     data() {
         return {
+            validMsg: {},
             currentPage: 1, //当前页数
             pageSize: 8,    //每页显示的数据量
             total: 10,      //总记录数量
@@ -193,6 +199,7 @@ export default {
             this.form = {};                     //清空表单
             this.dialogVisible = true;          //将表单设置成可见
             this.$refs['form'].resetFields();  //清空上次前端校验的信息
+            this.validMsg = {}      //清空上次的验证信息
         },
         save() {
             //集成添加和修改
@@ -224,7 +231,7 @@ export default {
                 //这里我们添加时，和表单验证关联，如果验证没有通过，就不进行提交
                 this.$refs['form'].validate(
                     (valid) => {
-                        if (valid) {
+                        if (valid) {    //为了测试后端校验，需要临时放行改成 true
                             console.log("valid:", valid);
                             //否则进行添加操作
                             request.post(
@@ -236,7 +243,7 @@ export default {
                                     if (res.code === "200") {
                                         //添加成功...
                                         ElMessage({
-                                            message: '更新成功',
+                                            message: '添加成功',
                                             type: 'success',
                                         });
                                         //重新请求所有数据
@@ -248,8 +255,8 @@ export default {
                                         ElMessage.error(res.msg);
                                         //重新请求所有数据
                                         //清空本次存储的数据
-                                        this.dialogVisible = false;
                                         this.form = {};
+                                        this.validMsg = res.data;
                                     }
                                 }
                             )
