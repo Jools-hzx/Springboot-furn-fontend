@@ -48,20 +48,20 @@
         3. el-input v-model="form.name" 表示表单的 input 控件，名字为 name 需要和后台 Javabean 属性一致
         -->
         <el-dialog title="提示" v-model="dialogVisible" width="30%">
-            <el-form :model="form" label-width="120px">
-                <el-form-item label="家居名">
+            <el-form :model="form" label-width="120px" :rules="rules" ref="form">
+                <el-form-item label="家居名" prop="name">
                     <el-input v-model="form.name" style="width: 80%"></el-input>
                 </el-form-item>
-                <el-form-item label="厂商">
+                <el-form-item label="厂商" prop="maker">
                     <el-input v-model="form.maker" style="width: 80%"></el-input>
                 </el-form-item>
-                <el-form-item label="价格">
+                <el-form-item label="价格" prop="price">
                     <el-input v-model="form.price" style="width: 80%"></el-input>
                 </el-form-item>
-                <el-form-item label="销量">
+                <el-form-item label="销量" prop="sales">
                     <el-input v-model="form.sales" style="width: 80%"></el-input>
                 </el-form-item>
-                <el-form-item label="库存">
+                <el-form-item label="库存" prop="stock">
                     <el-input v-model="form.stock" style="width: 80%"></el-input>
                 </el-form-item>
             </el-form>
@@ -112,11 +112,27 @@ export default {
         return {
             currentPage: 1, //当前页数
             pageSize: 8,    //每页显示的数据量
-            total: 10,  //总记录数量
-            form: {},   //存储添加表单中的信息
+            total: 10,      //总记录数量
+            form: {},       //存储添加表单中的信息
             dialogVisible: false,   //设置添加表单是否可见
             search: '',
-            tableData: []   //tableData动态通过 list() 获取
+            tableData: [],   //tableData动态通过 list() 获取
+            rules: {
+                name: [{required: true, message: '请输入称家居名', trigger: 'blur'}],
+                maker: [{required: true, message: '请输入称制造商', trigger: 'blur'}],
+                price: [
+                    {required: true, message: '请输入价格', trigger: 'blur'},
+                    {pattern: /^(([1-9]\d*)|(0))(\.\d+)?$/, message: '请输入数字', trigger: 'blur'}
+                ],
+                sales: [
+                    {required: true, message: '请输入销量', trigger: 'blur'},
+                    {pattern: /^(([1-9]\d*)|(0))$/, message: '请输入数字', trigger: 'blur'}
+                ],
+                stock: [
+                    {required: true, message: '请输入库存', trigger: 'blur'},
+                    {pattern: /^(([1-9]\d*)|(0))$/, message: '请输入数字', trigger: 'blur'}
+                ]
+            }
         }
     },
     methods: {
@@ -174,8 +190,9 @@ export default {
             // this.form = JSON.parse(JSON.stringify(row));
         },
         add() {
-            this.form = {}; //清空表单
-            this.dialogVisible = true;
+            this.form = {};                     //清空表单
+            this.dialogVisible = true;          //将表单设置成可见
+            this.$refs['form'].resetFields();  //清空上次前端校验的信息
         },
         save() {
             //集成添加和修改
@@ -204,30 +221,41 @@ export default {
                     }
                 )
             } else {
-                //否则进行添加操作
-                request.post(
-                    '/api/save',
-                    JSON.parse(JSON.stringify(this.form))
-                ).then(
-                    res => {
-                        console.log("res:", res);
-                        if (res.code === "200") {
-                            //添加成功...
-                            ElMessage({
-                                message: '更新成功',
-                                type: 'success',
-                            });
-                            //重新请求所有数据
-                            //清空本次存储的数据
-                            this.dialogVisible = false;
-                            this.list();    //更新数据
+                //这里我们添加时，和表单验证关联，如果验证没有通过，就不进行提交
+                this.$refs['form'].validate(
+                    (valid) => {
+                        if (valid) {
+                            console.log("valid:", valid);
+                            //否则进行添加操作
+                            request.post(
+                                '/api/save',
+                                JSON.parse(JSON.stringify(this.form))
+                            ).then(
+                                res => {
+                                    console.log("res:", res);
+                                    if (res.code === "200") {
+                                        //添加成功...
+                                        ElMessage({
+                                            message: '更新成功',
+                                            type: 'success',
+                                        });
+                                        //重新请求所有数据
+                                        //清空本次存储的数据
+                                        this.dialogVisible = false;
+                                        this.list();    //更新数据
+                                    } else {
+                                        //弹出提示失败
+                                        ElMessage.error(res.msg);
+                                        //重新请求所有数据
+                                        //清空本次存储的数据
+                                        this.dialogVisible = false;
+                                        this.form = {};
+                                    }
+                                }
+                            )
                         } else {
-                            //弹出提示失败
-                            ElMessage.error(res.msg);
-                            //重新请求所有数据
-                            //清空本次存储的数据
-                            this.dialogVisible = false;
-                            this.form = {};
+                            ElMessage.error("验证失败");
+                            return false;
                         }
                     }
                 )
